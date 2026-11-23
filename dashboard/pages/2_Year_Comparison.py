@@ -1,9 +1,11 @@
 """Page 2 — Year-over-Year Comparison: zones, boroughs, temporal overlay."""
-import streamlit as st
+
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from pathlib import Path
+import streamlit as st
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data" / "output"
 
@@ -36,7 +38,9 @@ def load_2015() -> pd.DataFrame | None:
 
 
 st.title("Year-over-Year Comparison")
-st.caption("Comparing April–June 2014 vs April–June 2015 (overlap period). Zone comparison uses the full datasets filtered to the 3 overlapping months.")
+st.caption(
+    "Comparing April–June 2014 vs April–June 2015 (overlap period). Zone comparison uses the full datasets filtered to the 3 overlapping months."
+)
 
 zone_df = load_zone_comparison()
 if zone_df is None:
@@ -53,20 +57,24 @@ top20["max_count"] = top20[["count_2014", "count_2015"]].max(axis=1)
 top20 = top20.nlargest(20, "max_count").sort_values("max_count", ascending=True)
 
 fig_top = go.Figure()
-fig_top.add_trace(go.Bar(
-    y=top20["zone"],
-    x=top20["count_2014"],
-    name="2014",
-    orientation="h",
-    marker_color="#636EFA",
-))
-fig_top.add_trace(go.Bar(
-    y=top20["zone"],
-    x=top20["count_2015"],
-    name="2015",
-    orientation="h",
-    marker_color="#EF553B",
-))
+fig_top.add_trace(
+    go.Bar(
+        y=top20["zone"],
+        x=top20["count_2014"],
+        name="2014",
+        orientation="h",
+        marker_color="#636EFA",
+    )
+)
+fig_top.add_trace(
+    go.Bar(
+        y=top20["zone"],
+        x=top20["count_2015"],
+        name="2015",
+        orientation="h",
+        marker_color="#EF553B",
+    )
+)
 fig_top.update_layout(
     barmode="group",
     height=560,
@@ -109,19 +117,32 @@ with col_n:
     ascending = st.checkbox("Ascending", value=False)
 
 table = (
-    zone_df[["zone", "borough", "count_2014", "count_2015", "growth_pct", "rank_2014", "rank_2015", "rank_change"]]
+    zone_df[
+        [
+            "zone",
+            "borough",
+            "count_2014",
+            "count_2015",
+            "growth_pct",
+            "rank_2014",
+            "rank_2015",
+            "rank_change",
+        ]
+    ]
     .dropna(subset=["growth_pct"])
     .sort_values(sort_by, ascending=ascending)
-    .rename(columns={
-        "zone": "Zone",
-        "borough": "Borough",
-        "count_2014": "Count 2014",
-        "count_2015": "Count 2015",
-        "growth_pct": "Growth %",
-        "rank_2014": "Rank 2014",
-        "rank_2015": "Rank 2015",
-        "rank_change": "Rank Change",
-    })
+    .rename(
+        columns={
+            "zone": "Zone",
+            "borough": "Borough",
+            "count_2014": "Count 2014",
+            "count_2015": "Count 2015",
+            "growth_pct": "Growth %",
+            "rank_2014": "Rank 2014",
+            "rank_2015": "Rank 2015",
+            "rank_change": "Rank Change",
+        }
+    )
 )
 table["Growth %"] = table["Growth %"].round(1)
 
@@ -132,12 +153,16 @@ st.divider()
 st.subheader("Borough-level Evolution")
 
 borough_2014 = (
-    zone_df.groupby("borough")["count_2014"].sum().reset_index()
+    zone_df.groupby("borough")["count_2014"]
+    .sum()
+    .reset_index()
     .rename(columns={"count_2014": "count"})
     .assign(year="2014")
 )
 borough_2015 = (
-    zone_df.groupby("borough")["count_2015"].sum().reset_index()
+    zone_df.groupby("borough")["count_2015"]
+    .sum()
+    .reset_index()
     .rename(columns={"count_2015": "count"})
     .assign(year="2015")
 )
@@ -186,22 +211,26 @@ if raw_2014 is not None and raw_2015 is not None:
     hourly_2015["pct"] = hourly_2015["count"] / hourly_2015["count"].sum() * 100
 
     fig_overlay = go.Figure()
-    fig_overlay.add_trace(go.Scatter(
-        x=hourly_2014["hour"],
-        y=hourly_2014["pct"],
-        mode="lines+markers",
-        name="2014",
-        line={"color": "#636EFA", "width": 2},
-        marker={"size": 6},
-    ))
-    fig_overlay.add_trace(go.Scatter(
-        x=hourly_2015["hour"],
-        y=hourly_2015["pct"],
-        mode="lines+markers",
-        name="2015",
-        line={"color": "#EF553B", "width": 2},
-        marker={"size": 6},
-    ))
+    fig_overlay.add_trace(
+        go.Scatter(
+            x=hourly_2014["hour"],
+            y=hourly_2014["pct"],
+            mode="lines+markers",
+            name="2014",
+            line={"color": "#636EFA", "width": 2},
+            marker={"size": 6},
+        )
+    )
+    fig_overlay.add_trace(
+        go.Scatter(
+            x=hourly_2015["hour"],
+            y=hourly_2015["pct"],
+            mode="lines+markers",
+            name="2015",
+            line={"color": "#EF553B", "width": 2},
+            marker={"size": 6},
+        )
+    )
     fig_overlay.update_layout(
         height=380,
         xaxis_title="Hour of Day",

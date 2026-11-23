@@ -1,7 +1,9 @@
 """Spatial operations for taxi zone mapping."""
-import pandas as pd
-import geopandas as gpd
+
 import logging
+
+import geopandas as gpd
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +31,7 @@ def spatial_join_2014(df_2014: pd.DataFrame, zones_gdf: gpd.GeoDataFrame) -> pd.
     mapped = result["LocationID"].notna().sum()
     if len(result) > 0:
         pct = mapped / len(result) * 100
-        logger.info(
-            f"2014 spatial join: {mapped:,} / {len(result):,} records mapped "
-            f"({pct:.1f}%)"
-        )
+        logger.info(f"2014 spatial join: {mapped:,} / {len(result):,} records mapped ({pct:.1f}%)")
     else:
         logger.warning("2014 spatial join: empty result, no records to map")
     return result

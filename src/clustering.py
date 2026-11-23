@@ -1,11 +1,13 @@
 """Clustering utilities for hot-zone detection."""
-import numpy as np
-import pandas as pd
-from sklearn.cluster import KMeans, DBSCAN
-from sklearn.metrics import silhouette_score, calinski_harabasz_score
-from .config import RANDOM_STATE
 
 import logging
+
+import numpy as np
+import pandas as pd
+from sklearn.cluster import DBSCAN, KMeans
+from sklearn.metrics import calinski_harabasz_score, silhouette_score
+
+from .config import RANDOM_STATE
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +23,15 @@ def evaluate_kmeans(X: np.ndarray, k_values: list[int]) -> pd.DataFrame:
         labels = km.fit_predict(X)
         sil = silhouette_score(X, labels, sample_size=min(30000, len(X)), random_state=RANDOM_STATE)
         ch = calinski_harabasz_score(X, labels)
-        results.append({
-            "k": k,
-            "silhouette": sil,
-            "calinski_harabasz": ch,
-            "inertia": km.inertia_,
-            "avg_cluster_size": len(X) / k,
-        })
+        results.append(
+            {
+                "k": k,
+                "silhouette": sil,
+                "calinski_harabasz": ch,
+                "inertia": km.inertia_,
+                "avg_cluster_size": len(X) / k,
+            }
+        )
         logger.debug(f"k={k:>3d}: silhouette={sil:.4f}, CH={ch:,.0f}, inertia={km.inertia_:,.0f}")
     return pd.DataFrame(results)
 
@@ -63,22 +67,25 @@ def evaluate_dbscan(
             largest_pct = cluster_counts.iloc[0] / len(non_noise_labels) * 100
 
             sil = silhouette_score(
-                X_non_noise, non_noise_labels,
+                X_non_noise,
+                non_noise_labels,
                 sample_size=min(30_000, len(X_non_noise)),
                 random_state=RANDOM_STATE,
             )
             ch = calinski_harabasz_score(X_non_noise, non_noise_labels)
 
-            results.append({
-                "eps": eps,
-                "min_samples": ms,
-                "n_clusters": n_clusters,
-                "noise_pct": noise_pct,
-                "silhouette": sil,
-                "calinski_harabasz": ch,
-                "largest_cluster_pct": largest_pct,
-                "avg_cluster_size": len(non_noise_labels) / n_clusters,
-            })
+            results.append(
+                {
+                    "eps": eps,
+                    "min_samples": ms,
+                    "n_clusters": n_clusters,
+                    "noise_pct": noise_pct,
+                    "silhouette": sil,
+                    "calinski_harabasz": ch,
+                    "largest_cluster_pct": largest_pct,
+                    "avg_cluster_size": len(non_noise_labels) / n_clusters,
+                }
+            )
             logger.debug(
                 f"eps={eps:.4f}, min_samples={ms:>3d}: "
                 f"{n_clusters} clusters, noise={noise_pct:.1f}%, "
@@ -91,9 +98,7 @@ def evaluate_dbscan(
     return pd.DataFrame(results)
 
 
-def fit_final_kmeans(
-    X: np.ndarray, k: int
-) -> tuple[np.ndarray, np.ndarray, KMeans]:
+def fit_final_kmeans(X: np.ndarray, k: int) -> tuple[np.ndarray, np.ndarray, KMeans]:
     """Fit final KMeans model on full data.
 
     Returns (labels, cluster_centers, fitted_model).
@@ -102,6 +107,8 @@ def fit_final_kmeans(
     labels = km.fit_predict(X)
     logger.info(f"KMeans fitted: k={k}, inertia={km.inertia_:,.0f}")
     cluster_sizes = pd.Series(labels).value_counts()
-    logger.info(f"Cluster sizes: min={cluster_sizes.min()}, max={cluster_sizes.max()}, "
-                f"mean={cluster_sizes.mean():.0f}, median={cluster_sizes.median():.0f}")
+    logger.info(
+        f"Cluster sizes: min={cluster_sizes.min()}, max={cluster_sizes.max()}, "
+        f"mean={cluster_sizes.mean():.0f}, median={cluster_sizes.median():.0f}"
+    )
     return labels, km.cluster_centers_, km
