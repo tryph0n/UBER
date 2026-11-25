@@ -19,12 +19,12 @@
 | Dashboard          | Streamlit                            |
 | Data format        | PyArrow / Parquet                    |
 | Package management | uv                                   |
-| Python             | 3.10+                                |
+| Python             | 3.13                                 |
 
 ## Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/tryph0n/UBER.git
 cd UBER
 
 # Install all dependencies
@@ -66,8 +66,21 @@ Raw data (~730MB total) is **not included in the repository**. You need to downl
 Download from the [FiveThirtyEight Uber TLC FOIL dataset](https://github.com/fivethirtyeight/uber-tlc-foil-response) and place files in `data/input/uber-trip-data/uber-trip-data/`:
 
 - **2014 (6 files):** `uber-raw-data-{apr,may,jun,jul,aug,sep}14.csv` -- GPS coordinates per pickup
-- **2015 (1 file):** `uber-raw-data-janjune-15.csv` -- zone IDs per pickup
+- **2015 (1 file):** `uber-raw-data-janjune-15.csv` -- zone IDs per pickup. The upstream repository ships it as `uber-raw-data-janjune-15.csv.zip`; unzip it as shown below.
 - **Lookup:** `taxi-zone-lookup.csv`
+
+Run this from the repository root, with the downloaded `.zip` in `data/input/uber-trip-data/uber-trip-data/`. It writes the CSV next to the archive:
+
+```bash
+unzip data/input/uber-trip-data/uber-trip-data/uber-raw-data-janjune-15.csv.zip \
+  uber-raw-data-janjune-15.csv -d data/input/uber-trip-data/uber-trip-data/
+```
+
+Naming the file extracts only the CSV, not the `__MACOSX/` folder that the archive also holds.
+
+The Uber pickups were obtained by FiveThirtyEight from the NYC Taxi and Limousine Commission (FOIL request), repository `fivethirtyeight/uber-tlc-foil-response`. The data was provided for a Jedha training course project.
+
+**License of the data.** The source repository states no license (GitHub API, 2026-11-19). The data is not covered by the code license. For the taxi zones (TLC), no license is stated.
 
 ### NYC taxi zones shapefile
 
@@ -78,3 +91,17 @@ curl -L -o data/input/taxi_zones/taxi_zones.zip \
 unzip data/input/taxi_zones/taxi_zones.zip -d data/input/taxi_zones/
 rm data/input/taxi_zones/taxi_zones.zip
 ```
+
+## Figures
+
+![Elbow method for the number of clusters](reports/figures/03_03_elbow_method.png)
+
+![KMeans evaluation metrics](reports/figures/03_02_kmeans_metrics.png)
+
+![Bar charts of 2014 pickups by hour of day and by day of week](reports/figures/02_02_hourly_daily_bars.png)
+
+All 18 figures are in [`reports/figures/`](reports/figures/). The 3 maps (3.5 to 4.4 MB each) are not embedded here.
+
+## License
+
+Code: MIT, see `LICENSE`.

@@ -1,9 +1,11 @@
 """Page 3 — Methodology: data sources, clustering rationale, limitations."""
-import streamlit as st
+
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from pathlib import Path
+import streamlit as st
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data" / "output"
 
@@ -126,9 +128,7 @@ if metrics_df is not None:
             title="Elbow Method: Inertia vs Number of Clusters",
             labels={"k": "Number of clusters (k)", "inertia": "Inertia (WCSS)"},
         )
-        fig_elbow.add_vline(
-            x=11, line_dash="dash", line_color="red", annotation_text="k=11"
-        )
+        fig_elbow.add_vline(x=11, line_dash="dash", line_color="red", annotation_text="k=11")
         st.plotly_chart(fig_elbow, width="stretch")
 
     with col_sil:
@@ -139,9 +139,7 @@ if metrics_df is not None:
             title="Silhouette Score vs Number of Clusters",
             labels={"k": "Number of clusters (k)", "silhouette": "Average Silhouette Score"},
         )
-        fig_sil.add_vline(
-            x=11, line_dash="dash", line_color="red", annotation_text="k=11"
-        )
+        fig_sil.add_vline(x=11, line_dash="dash", line_color="red", annotation_text="k=11")
         st.plotly_chart(fig_sil, width="stretch")
 
     st.caption(
@@ -149,7 +147,9 @@ if metrics_df is not None:
         "The elbow at k=11 (dashed line) marks the point of diminishing returns in inertia reduction."
     )
 else:
-    st.info("Evaluation metrics not found. Run notebook 03-Clustering_Analysis to generate kmeans_evaluation_metrics.csv.")
+    st.info(
+        "Evaluation metrics not found. Run notebook 03-Clustering_Analysis to generate kmeans_evaluation_metrics.csv."
+    )
 
 st.markdown("""\
 ---
@@ -213,20 +213,25 @@ if sample_df is not None and centers_df is not None:
     )
     fig_clusters.update_traces(marker_size=2)
 
-    fig_clusters.add_trace(go.Scattermap(
-        lat=centers_df["lat"],
-        lon=centers_df["lon"],
-        mode="markers",
-        marker=dict(size=16, color="#00BFFF", opacity=0.9),
-        name="Centroids",
-        hovertemplate="<b>Cluster %{text}</b><br>Lat: %{lat:.4f}<br>Lon: %{lon:.4f}<extra></extra>",
-        text=centers_df["cluster"].astype(str),
-    ))
+    fig_clusters.add_trace(
+        go.Scattermap(
+            lat=centers_df["lat"],
+            lon=centers_df["lon"],
+            mode="markers",
+            marker=dict(size=16, color="#00BFFF", opacity=0.9),
+            name="Centroids",
+            hovertemplate="<b>Cluster %{text}</b><br>Lat: %{lat:.4f}<br>Lon: %{lon:.4f}<extra></extra>",
+            text=centers_df["cluster"].astype(str),
+        )
+    )
 
     fig_clusters.update_layout(height=600, margin={"l": 0, "r": 0, "t": 30, "b": 0})
     st.plotly_chart(fig_clusters, width="stretch")
 else:
-    st.info("Data file not found. Re-run the analysis pipeline to generate dashboard_2014_sample.csv.")
+    st.info(
+        "Data file not found. Re-run the analysis pipeline to generate dashboard_2014_sample.csv."
+    )
+
 
 @st.cache_data
 def load_profiles():

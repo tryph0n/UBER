@@ -37,9 +37,6 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# uv
-uv.lock
-
 docs/plans/
 REUSABLE_METHODOLOGY.md
 SESSION_CONTEXT*.md
@@ -47,3 +44,4 @@ SESSION_CONTEXT*.md
 # Jupyter
 .ipynb_checkpoints/
 
+.doc/

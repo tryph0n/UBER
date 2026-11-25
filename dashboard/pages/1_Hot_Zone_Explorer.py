@@ -1,14 +1,17 @@
 """Page 1 — Hot Zone Explorer: filters, map, temporal charts, heatmap, top zones."""
-import streamlit as st
+
+import json
+from pathlib import Path
+
+import geopandas as gpd
+import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+
 # Note: Plotly >= 5.24 migrated from Mapbox to MapLibre.
 # Use px.choropleth_map / px.scatter_map / go.Scattermap (not *_mapbox variants).
-from pathlib import Path
-import numpy as np
-import geopandas as gpd
-import json
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data" / "output"
 
@@ -47,7 +50,9 @@ def load_centers() -> pd.DataFrame | None:
 @st.cache_resource
 def load_geojson() -> dict | None:
     """Load NYC taxi zone polygons as GeoJSON for choropleth."""
-    shp_path = Path(__file__).parent.parent.parent / "data" / "input" / "taxi_zones" / "taxi_zones.shp"
+    shp_path = (
+        Path(__file__).parent.parent.parent / "data" / "input" / "taxi_zones" / "taxi_zones.shp"
+    )
     if not shp_path.exists():
         return None
     gdf = gpd.read_file(shp_path)
@@ -62,8 +67,18 @@ st.sidebar.header("Filters")
 year = st.sidebar.radio("Year", [2014, 2015], index=0)
 
 month_labels = {
-    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
-    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+    1: "Jan",
+    2: "Feb",
+    3: "Mar",
+    4: "Apr",
+    5: "May",
+    6: "Jun",
+    7: "Jul",
+    8: "Aug",
+    9: "Sep",
+    10: "Oct",
+    11: "Nov",
+    12: "Dec",
 }
 
 if year == 2014:
@@ -125,16 +140,12 @@ if year == 2014:
     total_pickups = int(df["count"].sum())
     n_active = df["LocationID"].nunique()
     peak_hour = int(df.groupby("hour")["count"].sum().idxmax())
-    peak_zone = (
-        df.groupby("zone")["count"].sum().idxmax() if "zone" in df.columns else "N/A"
-    )
+    peak_zone = df.groupby("zone")["count"].sum().idxmax() if "zone" in df.columns else "N/A"
 else:
     total_pickups = int(df["count"].sum())
     n_active = df["locationID"].nunique() if "locationID" in df.columns else 0
     peak_hour = int(df.groupby("hour")["count"].sum().idxmax())
-    peak_zone = (
-        df.groupby("zone")["count"].sum().idxmax() if "zone" in df.columns else "N/A"
-    )
+    peak_zone = df.groupby("zone")["count"].sum().idxmax() if "zone" in df.columns else "N/A"
 
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Total Pickups", f"{total_pickups:,}")
@@ -172,11 +183,7 @@ if geojson is None:
     st.stop()
 
 if year == 2014:
-    zone_agg = (
-        df.groupby(["LocationID", "zone", "borough"])["count"]
-        .sum()
-        .reset_index()
-    )
+    zone_agg = df.groupby(["LocationID", "zone", "borough"])["count"].sum().reset_index()
 
     zone_agg["log_count"] = np.log10(zone_agg["count"].clip(lower=1))
 
@@ -198,18 +205,19 @@ if year == 2014:
     )
 
     if centers_df is not None:
-        fig_map.add_trace(go.Scattermap(
-            lat=centers_df["lat"],
-            lon=centers_df["lon"],
-            mode="markers",
-            marker=dict(size=14, color="#00BFFF", opacity=0.9),
-            name="Cluster Centers",
-            hovertemplate=(
-                "<b>Cluster %{text}</b><br>"
-                "Lat: %{lat:.4f}<br>Lon: %{lon:.4f}<extra></extra>"
-            ),
-            text=centers_df["cluster"].astype(str),
-        ))
+        fig_map.add_trace(
+            go.Scattermap(
+                lat=centers_df["lat"],
+                lon=centers_df["lon"],
+                mode="markers",
+                marker=dict(size=14, color="#00BFFF", opacity=0.9),
+                name="Cluster Centers",
+                hovertemplate=(
+                    "<b>Cluster %{text}</b><br>Lat: %{lat:.4f}<br>Lon: %{lon:.4f}<extra></extra>"
+                ),
+                text=centers_df["cluster"].astype(str),
+            )
+        )
 
 else:
     zone_agg = (
@@ -314,7 +322,11 @@ if year == 2014:
             .rename(columns={"zone": "Zone", "borough": "Borough"})
         )
         top_zones["% of Total"] = (top_zones["Pickups"] / total_pickups * 100).round(2)
-        st.dataframe(top_zones[["Zone", "Borough", "Pickups", "% of Total"]], hide_index=True, width="stretch")
+        st.dataframe(
+            top_zones[["Zone", "Borough", "Pickups", "% of Total"]],
+            hide_index=True,
+            width="stretch",
+        )
     else:
         st.info("Zone information not available in 2014 data.")
 else:
@@ -327,4 +339,6 @@ else:
         .rename(columns={"zone": "Zone", "borough": "Borough", "count": "Pickups"})
     )
     top_zones["% of Total"] = (top_zones["Pickups"] / total_pickups * 100).round(2)
-    st.dataframe(top_zones[["Zone", "Borough", "Pickups", "% of Total"]], hide_index=True, width="stretch")
+    st.dataframe(
+        top_zones[["Zone", "Borough", "Pickups", "% of Total"]], hide_index=True, width="stretch"
+    )

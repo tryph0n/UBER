@@ -1,9 +1,18 @@
 """Data loading functions for Uber pickup datasets."""
-import pandas as pd
-import geopandas as gpd
-from .config import DATA_DIR, ZONES_DIR, CSV_2014_PATTERN, CSV_2015_FILENAME, ZONE_LOOKUP_FILENAME, ZONE_SHAPEFILE
 
 import logging
+
+import geopandas as gpd
+import pandas as pd
+
+from .config import (
+    CSV_2014_PATTERN,
+    CSV_2015_FILENAME,
+    DATA_DIR,
+    ZONE_LOOKUP_FILENAME,
+    ZONE_SHAPEFILE,
+    ZONES_DIR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +25,7 @@ def load_2014_data() -> pd.DataFrame:
     """
     csv_files = sorted(DATA_DIR.glob(CSV_2014_PATTERN))
     if not csv_files:
-        raise FileNotFoundError(
-            f"No files matching '{CSV_2014_PATTERN}' in {DATA_DIR}"
-        )
+        raise FileNotFoundError(f"No files matching '{CSV_2014_PATTERN}' in {DATA_DIR}")
     dtypes = {
         "Lat": "float32",
         "Lon": "float32",

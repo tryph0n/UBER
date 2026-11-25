@@ -1,8 +1,10 @@
 """Reusable Plotly chart factories for notebooks and dashboard."""
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
 from .config import DAY_NAMES, RANDOM_STATE
 
 
@@ -44,7 +46,9 @@ def create_pickup_map(
             mode="markers",
             marker=dict(size=4, opacity=0.5, color=sample[color_col], colorscale="Viridis"),
             name="Pickups",
-            hovertemplate="Lat: %{lat:.4f}<br>Lon: %{lon:.4f}<br>" + color_col + ": %{marker.color}<extra></extra>",
+            hovertemplate="Lat: %{lat:.4f}<br>Lon: %{lon:.4f}<br>"
+            + color_col
+            + ": %{marker.color}<extra></extra>",
         )
     )
 
@@ -77,7 +81,14 @@ def create_pickup_map(
 def create_hourly_bar(df: pd.DataFrame, title: str = "Pickups by Hour") -> go.Figure:
     """Bar chart of pickup counts by hour of day."""
     hourly = df.groupby("hour").size().reset_index(name="count")
-    fig = px.bar(hourly, x="hour", y="count", title=title, labels={"hour": "Hour", "count": "Pickups"}, height=350)
+    fig = px.bar(
+        hourly,
+        x="hour",
+        y="count",
+        title=title,
+        labels={"hour": "Hour", "count": "Pickups"},
+        height=350,
+    )
     fig.update_xaxes(dtick=1)
     return fig
 
@@ -86,7 +97,14 @@ def create_daily_bar(df: pd.DataFrame, title: str = "Pickups by Day of Week") ->
     """Bar chart of pickup counts by day of week."""
     daily = df.groupby("day_of_week").size().reset_index(name="count")
     daily["day_name"] = daily["day_of_week"].map(lambda x: DAY_NAMES[x])
-    fig = px.bar(daily, x="day_name", y="count", title=title, labels={"day_name": "Day", "count": "Pickups"}, height=350)
+    fig = px.bar(
+        daily,
+        x="day_name",
+        y="count",
+        title=title,
+        labels={"day_name": "Day", "count": "Pickups"},
+        height=350,
+    )
     return fig
 
 
@@ -111,24 +129,47 @@ def create_cluster_metrics_plot(metrics_df: pd.DataFrame) -> go.Figure:
     fig = make_subplots(
         rows=2,
         cols=2,
-        subplot_titles=("Silhouette Score", "Calinski-Harabasz Index", "Inertia (Elbow)", "Avg Cluster Size"),
+        subplot_titles=(
+            "Silhouette Score",
+            "Calinski-Harabasz Index",
+            "Inertia (Elbow)",
+            "Avg Cluster Size",
+        ),
     )
 
     fig.add_trace(
-        go.Scatter(x=metrics_df["k"], y=metrics_df["silhouette"], mode="lines+markers", name="Silhouette"),
-        row=1, col=1,
+        go.Scatter(
+            x=metrics_df["k"], y=metrics_df["silhouette"], mode="lines+markers", name="Silhouette"
+        ),
+        row=1,
+        col=1,
     )
     fig.add_trace(
-        go.Scatter(x=metrics_df["k"], y=metrics_df["calinski_harabasz"], mode="lines+markers", name="CH Index"),
-        row=1, col=2,
+        go.Scatter(
+            x=metrics_df["k"],
+            y=metrics_df["calinski_harabasz"],
+            mode="lines+markers",
+            name="CH Index",
+        ),
+        row=1,
+        col=2,
     )
     fig.add_trace(
-        go.Scatter(x=metrics_df["k"], y=metrics_df["inertia"], mode="lines+markers", name="Inertia"),
-        row=2, col=1,
+        go.Scatter(
+            x=metrics_df["k"], y=metrics_df["inertia"], mode="lines+markers", name="Inertia"
+        ),
+        row=2,
+        col=1,
     )
     fig.add_trace(
-        go.Scatter(x=metrics_df["k"], y=metrics_df["avg_cluster_size"], mode="lines+markers", name="Avg Size"),
-        row=2, col=2,
+        go.Scatter(
+            x=metrics_df["k"],
+            y=metrics_df["avg_cluster_size"],
+            mode="lines+markers",
+            name="Avg Size",
+        ),
+        row=2,
+        col=2,
     )
 
     fig.update_layout(height=600, title_text="KMeans Hyperparameter Analysis", showlegend=False)

@@ -1,10 +1,12 @@
 """Preprocessing functions for Uber pickup data."""
+
+import logging
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from .config import NYC_BOUNDS, NYC_LAT_CENTER
 
-import logging
+from .config import NYC_BOUNDS, NYC_LAT_CENTER
 
 logger = logging.getLogger(__name__)
 
@@ -45,16 +47,14 @@ def filter_nyc_bounds(df: pd.DataFrame) -> pd.DataFrame:
     Uses bounds defined in config.NYC_BOUNDS.
     """
     before = len(df)
-    mask = (
-        df["Lat"].between(NYC_BOUNDS["lat_min"], NYC_BOUNDS["lat_max"])
-        & df["Lon"].between(NYC_BOUNDS["lon_min"], NYC_BOUNDS["lon_max"])
+    mask = df["Lat"].between(NYC_BOUNDS["lat_min"], NYC_BOUNDS["lat_max"]) & df["Lon"].between(
+        NYC_BOUNDS["lon_min"], NYC_BOUNDS["lon_max"]
     )
     result = df[mask].copy()
     removed = before - len(result)
     pct = (removed / before * 100) if before > 0 else 0.0
     logger.info(
-        f"Geographic filter: {before:,} -> {len(result):,} "
-        f"(removed {removed:,}, {pct:.2f}%)"
+        f"Geographic filter: {before:,} -> {len(result):,} (removed {removed:,}, {pct:.2f}%)"
     )
     return result
 
@@ -69,10 +69,12 @@ def normalize_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, MinMaxScaler]
     Note: Modifies df in-place by adding lat_norm/lon_norm columns.
     """
     cos_factor = np.cos(np.radians(NYC_LAT_CENTER))
-    coords = pd.DataFrame({
-        "Lat": df["Lat"].values,
-        "Lon_corr": df["Lon"].values * cos_factor,
-    })
+    coords = pd.DataFrame(
+        {
+            "Lat": df["Lat"].values,
+            "Lon_corr": df["Lon"].values * cos_factor,
+        }
+    )
     scaler = MinMaxScaler()
     df[["lat_norm", "lon_norm"]] = scaler.fit_transform(coords)
     return df, scaler
@@ -102,18 +104,11 @@ def map_2015_zones(df_2015: pd.DataFrame, zone_lookup: pd.DataFrame) -> pd.DataF
     n_unknown = unknown_mask.sum()
     pct_unknown = (n_unknown / len(df_2015) * 100) if len(df_2015) > 0 else 0.0
     df_2015 = df_2015[~unknown_mask]
-    logger.info(
-        f"Dropped {n_unknown:,} unknown-zone rows (locationID 264/265, {pct_unknown:.3f}%)"
-    )
+    logger.info(f"Dropped {n_unknown:,} unknown-zone rows (locationID 264/265, {pct_unknown:.3f}%)")
 
-    result = df_2015.merge(
-        zone_lookup, left_on="locationID", right_on="LocationID", how="left"
-    )
+    result = df_2015.merge(zone_lookup, left_on="locationID", right_on="LocationID", how="left")
     result = result.rename(columns={"Zone": "zone", "Borough": "borough"})
     mapped = result["zone"].notna().sum()
     pct = (mapped / len(result) * 100) if len(result) > 0 else 0.0
-    logger.info(
-        f"2015 zone mapping: {mapped:,} / {len(result):,} records mapped "
-        f"({pct:.1f}%)"
-    )
+    logger.info(f"2015 zone mapping: {mapped:,} / {len(result):,} records mapped ({pct:.1f}%)")
     return result
