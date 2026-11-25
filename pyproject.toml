@@ -18,8 +18,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tryph0n/UBER"
-Repository = "https://github.com/tryph0n/UBER"
+Homepage = "https://github.com/tryph0n/nyc-uber-hotzones"
+Repository = "https://github.com/tryph0n/nyc-uber-hotzones"
 
 [dependency-groups]
 dev = [

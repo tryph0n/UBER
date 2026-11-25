@@ -24,8 +24,8 @@
 ## Installation
 
 ```bash
-git clone https://github.com/tryph0n/UBER.git
-cd UBER
+git clone https://github.com/tryph0n/nyc-uber-hotzones.git
+cd nyc-uber-hotzones
 
 # Install all dependencies
 uv sync
